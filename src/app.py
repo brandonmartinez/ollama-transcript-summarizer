@@ -1,5 +1,6 @@
 import os
 import Transcription
+import Summarization
 import sys
 
 # setup working variables
@@ -11,6 +12,7 @@ transcript_directory = target_directory + "/_transcripts"
 # initialize helpers
 converter = Transcription.Converter()
 transcriber = Transcription.Transcriber()
+summarizer = Summarization.TranscriptSummarizationChain()
 
 # Create directories
 os.makedirs(target_directory, exist_ok=True)
@@ -37,4 +39,22 @@ for converted_file in converted_files:
     transcribed_files.append(transcribed_file)
 
 # combine all transcriptions
-combined_transcripts = transcriber.combine(transcribed_files, transcript_directory=transcript_directory)
+combined_transcripts = transcriber.combine(
+    transcribed_files, transcript_directory=transcript_directory)
+
+with open(combined_transcripts, 'r') as file:
+    transcript_text = file.read()
+
+rewritten_summary = summarizer.rewrite(transcript_text)
+
+rewritten_file_path = target_directory + "/_rewritten.txt"
+with open(rewritten_file_path, 'w') as file:
+    file.write(rewritten_summary)
+
+summary = summarizer.summarize(rewritten_summary)
+
+summary_file_path = target_directory + "/_summary.txt"
+with open(summary_file_path, 'w') as file:
+    file.write(summary)
+
+print(summary)
