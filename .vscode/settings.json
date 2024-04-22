@@ -1,0 +1,10 @@
+{
+    "cSpell.words": [
+        "langchain",
+        "Ollama"
+    ],
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv",
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.autopep8"
+    }
+}
