@@ -4,7 +4,7 @@ import Summarization
 import sys
 
 # setup working variables
-source_directory = os.path.abspath(sys.argv[1])
+source_directory = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else ".temp"
 target_directory = source_directory + "/_output"
 converted_directory = target_directory + "/_converted"
 transcript_directory = target_directory + "/_transcripts"
@@ -12,7 +12,7 @@ transcript_directory = target_directory + "/_transcripts"
 # initialize helpers
 converter = Transcription.Converter()
 transcriber = Transcription.Transcriber()
-summarizer = Summarization.TranscriptSummarizationChain()
+summarizer = Summarization.TranscriptSummarizer()
 
 # Create directories
 os.makedirs(target_directory, exist_ok=True)
@@ -45,16 +45,9 @@ combined_transcripts = transcriber.combine(
 with open(combined_transcripts, 'r') as file:
     transcript_text = file.read()
 
-rewritten_summary = summarizer.rewrite(transcript_text)
-
-rewritten_file_path = target_directory + "/_rewritten.txt"
-with open(rewritten_file_path, 'w') as file:
-    file.write(rewritten_summary)
-
-summary = summarizer.summarize(rewritten_summary)
+summary = summarizer.summarize(transcript_text)
 
 summary_file_path = target_directory + "/_summary.txt"
 with open(summary_file_path, 'w') as file:
     file.write(summary)
 
-print(summary)

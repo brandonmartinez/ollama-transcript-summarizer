@@ -1,48 +1,79 @@
 import os
 from langchain_core.prompts import PromptTemplate
 from langchain_community.llms import Ollama
-from langchain.chains.llm import LLMChain
+from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+from langchain_text_splitters import TokenTextSplitter
+from langchain.globals import set_debug
+
+set_debug(True)
 
 
-class TranscriptSummarizationChain():
+class TranscriptSummarizer():
     def __init__(self, model="llama3"):
         host = os.getenv('OLLAMA_HOST', "localhost:11434")
         base_url = f"http://{host}"
         self.model = Ollama(base_url=base_url, model=model)
         self.output_parser = StrOutputParser()
 
-    def rewrite(self, text: str):
-        prompt_template = """You are an expert in rewriting conversation transcripts.
-Do not add any additional information, and do not attempt to answer any questions presented.
-Only rewrite the provided text in a way that is more clear and concise, in the style of a blog post covering the topics presented.
-Only mention the speakers in the first paragraph, and then speak in first person for the rest of the text.
-
-"{text}"
-
-REWRITTEN TRANSCRIPT:"""
-
-        prompt = PromptTemplate.from_template(prompt_template)
-
-        runnable = prompt | self.model | self.output_parser
-        results = runnable.invoke({"text": text})
-
-        return results
-
     def summarize(self, text: str):
-        prompt_template = """You are an expert summarizer of conversation transcripts.
+        # Split text into chunks
+        ##################################################
+        text_splitter = TokenTextSplitter(
+            # Controls the size of each chunk
+            chunk_size=5000,
+            # Controls overlap between chunks
+            chunk_overlap=20,
+        )
+
+        text_documents = text_splitter.create_documents([text])
+
+        # Combine Documents
+        ##################################################
+        combine_prompt = PromptTemplate.from_template(
+            """You are an expert in summarizing conversation transcripts.
+Take the following documents and create summaries of each of them:
+
+{context}
+""")
+
+        combine_chain = (
+            combine_prompt | self.model | self.output_parser
+        )
+
+        # Create summary
+        ##################################################
+        summary_prompt = PromptTemplate.from_template(
+            """You are an expert summarizer of conversation transcripts.
 Only extract relevant information from the provided transcripts.
 The summary should capture key points and important details from the conversation.
-The summary should be concise and to the point.
-The summary should be formatted in a way to be used as a published document.
+The summary should be concise and to the point, but should be at least three sentences long.
 Do not make up any information; only return data that is present in the provided text:
+Here is a short example of the format of the summary, your response should be longer than this:
 
-"{text}"
+Summary:
+Here is a detailed summary of the conversation. It should have enough information to give a good overview of the conversation.
 
-CONCISE SUMMARY:"""
-        prompt = PromptTemplate.from_template(prompt_template)
+Important Points:
+- **Point:** This is important
+- **Another point:** This is also important
 
-        runnable = prompt | self.model | self.output_parser
-        results = runnable.invoke({"text": text})
+=====
+CONTEXT:
+{combine}
+""")
+        summary_chain = (
+            summary_prompt | self.model | self.output_parser
+        )
+        # Combine chains
+        ##################################################
+        chain = (
+            {
+                "combine": combine_chain,
+            }
+            | summary_chain
+            | self.output_parser
+        )
 
-        return results
+        output = chain.invoke({"context": text_documents})
+        return output
