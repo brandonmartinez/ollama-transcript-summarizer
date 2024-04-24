@@ -21,7 +21,7 @@ class TranscriptSummarizer():
         ##################################################
         text_splitter = TokenTextSplitter(
             # Controls the size of each chunk
-            chunk_size=5000,
+            chunk_size=1000,
             # Controls overlap between chunks
             chunk_overlap=20,
         )
@@ -30,50 +30,56 @@ class TranscriptSummarizer():
 
         # Combine Documents
         ##################################################
-        combine_prompt = PromptTemplate.from_template(
-            """You are an expert in summarizing conversation transcripts.
-Take the following documents and create summaries of each of them:
+        text_document_summary_prompt = PromptTemplate.from_template(
+            """You are an expert at summarizing conversation transcripts.
+Given the following conversation transcript, capture the most important topics and details
+from the conversation. Your summary should be concise and to the point, and be written
+in a way that can be easily understood by someone who was not present during the conversation.
+The summary should be at least three sentences long. Don't include anything that is
+not present in the conversation transcript.
 
-{context}
+TRANSCRIPT:
+{page_content}
 """)
 
-        combine_chain = (
-            combine_prompt | self.model | self.output_parser
+        text_document_summary_chain = (
+            text_document_summary_prompt | self.model | self.output_parser
         )
+
+        text_document_summary_output = text_document_summary_chain.batch(
+            text_documents)
 
         # Create summary
         ##################################################
         summary_prompt = PromptTemplate.from_template(
-            """You are an expert summarizer of conversation transcripts.
-Only extract relevant information from the provided transcripts.
+            """You are an expert at taking summaries of a conversation transcript, combining them, and retrieving the most important information.
+Only use information that is provided by the transcript summaries.
 The summary should capture key points and important details from the conversation.
-The summary should be concise and to the point, but should be at least three sentences long.
-Do not make up any information; only return data that is present in the provided text:
+The summary should be concise and to the point, but should be at least ten sentences long.
+Do not make up any information; only return data that is present in the provided text.
 Here is a short example of the format of the summary, your response should be longer than this:
+
+EXAMPLE OUTPUT:
+=====
 
 Summary:
 Here is a detailed summary of the conversation. It should have enough information to give a good overview of the conversation.
+It will include multiple sentences to cover all the important points from the conversation.
 
 Important Points:
 - **Point:** This is important
 - **Another point:** This is also important
+- **Yet another point:** This is equally as important
 
 =====
 CONTEXT:
-{combine}
+{context}
 """)
+
+
         summary_chain = (
             summary_prompt | self.model | self.output_parser
         )
-        # Combine chains
-        ##################################################
-        chain = (
-            {
-                "combine": combine_chain,
-            }
-            | summary_chain
-            | self.output_parser
-        )
 
-        output = chain.invoke({"context": text_documents})
+        output = summary_chain.invoke({"context": text_document_summary_output})
         return output
