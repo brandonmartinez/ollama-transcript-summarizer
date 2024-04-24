@@ -5,8 +5,11 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_text_splitters import TokenTextSplitter
 from langchain.globals import set_debug
+import logging
+import sys
+logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
-set_debug(True)
+# set_debug(True)
 
 
 class TranscriptSummarizer():
@@ -19,6 +22,7 @@ class TranscriptSummarizer():
     def summarize(self, text: str):
         # Split text into chunks
         ##################################################
+        logging.info('Splitting text into chunks')
         text_splitter = TokenTextSplitter(
             # Controls the size of each chunk
             chunk_size=1000,
@@ -27,6 +31,8 @@ class TranscriptSummarizer():
         )
 
         text_documents = text_splitter.create_documents([text])
+        logging.info('Documents chunked')
+        logging.debug(text_documents)
 
         # Combine Documents
         ##################################################
@@ -46,8 +52,12 @@ TRANSCRIPT:
             text_document_summary_prompt | self.model | self.output_parser
         )
 
+        logging.info('Executing text_document_summary_chain')
         text_document_summary_output = text_document_summary_chain.batch(
             text_documents)
+
+        logging.info('Summaries returned')
+        logging.debug(text_document_summary_output)
 
         # Create summary
         ##################################################
@@ -76,10 +86,14 @@ CONTEXT:
 {context}
 """)
 
-
         summary_chain = (
             summary_prompt | self.model | self.output_parser
         )
 
-        output = summary_chain.invoke({"context": text_document_summary_output})
+        logging.info('Executing summary_chain')
+        output = summary_chain.invoke(
+            {"context": text_document_summary_output})
+        logging.info('Final summary returned')
+        logging.debug(output)
+
         return output
