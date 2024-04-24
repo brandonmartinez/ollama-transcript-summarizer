@@ -1,4 +1,5 @@
 import os
+import mdformat
 from langchain_core.prompts import PromptTemplate
 from langchain_community.llms import Ollama
 from langchain_core.prompts import PromptTemplate
@@ -46,6 +47,8 @@ not present in the conversation transcript.
 
 TRANSCRIPT:
 {page_content}
+
+SUMMARY:
 """)
 
         text_document_summary_chain = (
@@ -84,6 +87,8 @@ Important Points:
 =====
 CONTEXT:
 {context}
+
+SUMMARY:
 """)
 
         summary_chain = (
@@ -93,7 +98,8 @@ CONTEXT:
         logging.info('Executing summary_chain')
         output = summary_chain.invoke(
             {"context": text_document_summary_output})
+        formatted_text = mdformat.text(output)
         logging.info('Final summary returned')
-        logging.debug(output)
+        logging.debug(formatted_text)
 
-        return output
+        return formatted_text
