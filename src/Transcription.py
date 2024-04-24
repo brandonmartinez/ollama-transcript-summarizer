@@ -38,7 +38,8 @@ class Transcriber:
             if lines and segment["text"] == lines[-1].split(" | ")[-1]:
                 continue
 
-            line_text = f'{segment["start"]:09.3f} | {segment["end"]:09.3f} | {transcript_file_name} | {segment["text"]}'
+            line_text = f'{segment["start"]:09.3f} | {segment["end"]:09.3f} | {
+                transcript_file_name} | {segment["text"]}'
             lines.append(line_text)
 
         with open(transcript_file, 'w') as file:
@@ -60,11 +61,13 @@ class Transcriber:
 
     def combine(self, transcript_files: list[str], transcript_directory: str = None) -> str:
         if transcript_directory is None:
-            transcript_directory = "/".join(transcript_files[0].split("/")[:-1])
+            transcript_directory = "/".join(
+                transcript_files[0].split("/")[:-1])
         combined_transcript_file = transcript_directory + "/_combined.txt"
 
         if os.path.exists(combined_transcript_file):
-            print("Combined transcript file already exists:", combined_transcript_file)
+            print("Combined transcript file already exists:",
+                  combined_transcript_file)
             return combined_transcript_file
 
         combined_transcripts = []
@@ -76,9 +79,31 @@ class Transcriber:
         combined_transcripts.sort()
 
         modified_transcripts = []
+        current_speaker = None
+        current_text = None
+
+        def format_line(s, t):
+            return "\n\n" + s + ":\n" + t.replace("\n\n", " ").replace("\n", " ")
+
         for line in combined_transcripts:
-            modified_line = " | ".join(line.split(" | ")[2:])
-            modified_transcripts.append(modified_line)
+            split_line = line.split(" | ")
+            speaker = split_line[2]
+            text = split_line[3]
+
+            # if the speaker is different, we can save the previous line to the array and build a new line
+            if (speaker != current_speaker):
+                if (current_speaker != None):
+                    modified_transcripts.append(format_line(current_speaker, current_text))
+                    current_speaker = None
+                    current_text = None
+
+                current_speaker = speaker
+                current_text = text
+            else:
+                current_text += "\n" + text
+
+        # add the last line
+        modified_transcripts.append(format_line(current_speaker, current_text))
 
         with open(combined_transcript_file, 'w') as file:
             file.writelines(modified_transcripts)
