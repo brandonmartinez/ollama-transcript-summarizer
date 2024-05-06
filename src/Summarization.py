@@ -66,29 +66,13 @@ SUMMARY:
         ##################################################
         summary_prompt = PromptTemplate.from_template(
             """You are an expert at taking summaries of a conversation transcript, combining them, and retrieving the most important information.
-Only use information that is provided by the transcript summaries.
+Do not make up any information; only use information that is provided by the transcript summaries.
 The summary should capture key points and important details from the conversation.
-The summary should be concise and to the point, but should be at least ten sentences long.
-Do not make up any information; only return data that is present in the provided text.
+The summary should be concise and to the point, but should be long enough to form a blog post.
 Here is a short example of the format of the summary, your response should be longer than this:
 
-EXAMPLE OUTPUT:
-=====
-
-Summary:
-Here is a detailed summary of the conversation. It should have enough information to give a good overview of the conversation.
-It will include multiple sentences to cover all the important points from the conversation.
-
-Important Points:
-- **Point:** This is important
-- **Another point:** This is also important
-- **Yet another point:** This is equally as important
-
-=====
-CONTEXT:
+TRANSCRIPT SUMMARIES:
 {context}
-
-SUMMARY:
 """)
 
         summary_chain = (

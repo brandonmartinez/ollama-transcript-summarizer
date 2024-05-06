@@ -8,5 +8,7 @@ fi
 echo "Activating Python virtual environment"
 source .venv/bin/activate
 
-echo "Installing Python dependencies"
-pip install -r requirements.txt
+if [ -f "requirements.txt" ]; then
+    echo "Installing Python dependencies"
+    pip install -r requirements.txt
+fi
