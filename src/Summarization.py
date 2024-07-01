@@ -71,6 +71,7 @@ The summary should capture key points and important details from the conversatio
 The summary should be concise and to the point, but should be long enough to form a blog post.
 Do not include the prompt in your response. Do not state what you are responding with, just the response itself. Do not address the conversation, just state the information.
 Do not state what you did, only state the results.
+Do not state in the context of the speakers, instead state the content of the conversation.
 
 TRANSCRIPT SUMMARIES:
 {context}

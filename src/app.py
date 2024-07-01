@@ -4,7 +4,7 @@ import Summarization
 import sys
 
 # setup working variables
-source_directory = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else ".temp"
+source_directory = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else "_temp"
 target_directory = source_directory + "/_output"
 converted_directory = target_directory + "/_converted"
 transcript_directory = target_directory + "/_transcripts"
