@@ -65,10 +65,10 @@ SUMMARY:
         # Create summary
         ##################################################
         summary_prompt = PromptTemplate.from_template(
-            """You are an expert at taking chunks of a conversation transcript, combining them, and producing an outline of the topics in the conversation.
+            """You are an expert at taking chunks of a conversation transcript, combining them, and producing an summary of the topics in the conversation.
 Do not make up any information; only use information that is provided by the transcript chunks.
-The summary should capture key points and important details from the conversation.
-The summary should be concise and to the point, but should be long enough to form a blog post.
+The summary should capture key points, descriptions, and important details from the conversation.
+The summary should be long enough to be used as a blog post, article, or document to inform readers of the important content from the conversation.
 Do not include the prompt in your response. Do not state what you are responding with, just the response itself. Do not address the conversation, just state the information.
 Do not state what you did, only state the results.
 Do not state in the context of the speakers, instead state the content of the conversation.
@@ -88,4 +88,7 @@ TRANSCRIPT SUMMARIES:
         logging.info('Final summary returned')
         logging.debug(formatted_text)
 
-        return formatted_text
+        return {
+            "summaries": text_document_summary_output,
+            "summary": formatted_text
+        }

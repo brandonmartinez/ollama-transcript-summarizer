@@ -4,10 +4,12 @@ import Summarization
 import sys
 
 # setup working variables
-source_directory = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else "_temp"
+source_directory = os.path.abspath(
+    sys.argv[1]) if len(sys.argv) > 1 else "_temp"
 target_directory = source_directory + "/_output"
 converted_directory = target_directory + "/_converted"
 transcript_directory = target_directory + "/_transcripts"
+summaries_directory = target_directory + "/_summaries"
 
 # initialize helpers
 converter = Transcription.Converter()
@@ -18,6 +20,7 @@ summarizer = Summarization.TranscriptSummarizer()
 os.makedirs(target_directory, exist_ok=True)
 os.makedirs(converted_directory, exist_ok=True)
 os.makedirs(transcript_directory, exist_ok=True)
+os.makedirs(summaries_directory, exist_ok=True)
 
 # gather files
 source_files = [file for file in os.listdir(source_directory) if os.path.isfile(
@@ -45,9 +48,13 @@ combined_transcripts = transcriber.combine(
 with open(combined_transcripts, 'r') as file:
     transcript_text = file.read()
 
-summary = summarizer.summarize(transcript_text)
+summarization_result = summarizer.summarize(transcript_text)
 
 summary_file_path = target_directory + "/_summary.txt"
 with open(summary_file_path, 'w') as file:
-    file.write(summary)
+    file.write(summarization_result['summary'])
 
+for i, summary in enumerate(summarization_result['summaries']):
+    summary_file_path = f"{summaries_directory}/{i+1:03}.txt"
+    with open(summary_file_path, 'w') as file:
+        file.write(summary)
